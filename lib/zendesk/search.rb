@@ -5,7 +5,7 @@ module Zendesk
   class Users
     include Virtus.model
 
-    attribute :users, Array[Zendesk::User]
+    attribute :results, Array
     attribute :next_page, String
     attribute :previous_page, String
     attribute :count, Integer
