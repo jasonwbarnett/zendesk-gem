@@ -59,6 +59,8 @@ module Zendesk
       user
     end
 
+    alias :get_user_identities :get_identities
+
     def add_identity(user, identity)
       uri = "/users/#{user.id}/identities.json"
 
@@ -74,7 +76,14 @@ module Zendesk
       Zendesk::Identity.new(parsed_response['identity'])
     end
 
-    alias :get_user_identities :get_identities
+    def delete_identity(identity)
+      fail("Expected a Zendesk::Identity, but received a #{identity.class}.") unless Zendesk::Identity === identity
+
+      uri = "/users/#{identity.user_id}/identities/#{identity.id}.json"
+
+      res = self.class.delete(uri)
+      parsed_response = raise_or_return(res)
+    end
 
     private
     def get_page(x)
