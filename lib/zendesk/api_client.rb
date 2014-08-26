@@ -1,4 +1,5 @@
 require "httparty"
+require "json"
 require "zendesk"
 require "zendesk/api_error"
 require "zendesk/users"
@@ -49,14 +50,28 @@ module Zendesk
 
     def get_identities(user)
       fail("Expected a Zendesk::User, but received a #{user.class}.") unless Zendesk::User === user
-      user_id = user.id
-      uri = "/users/#{user_id}/identities.json"
+      uri = "/users/#{user.id}/identities.json"
 
       res = self.class.get(uri)
       parsed_response = raise_or_return(res)
 
       user.identities = parsed_response['identities']
       user
+    end
+
+    def add_identity(user, identity)
+      uri = "/users/#{user.id}/identities.json"
+
+      identity_hash = identity.to_h
+      body = {"identity" => identity_hash}
+      body = JSON.dump(body) # Convert our request to json
+      options = {body: body} # fill in our options, specific to httparty
+
+      res = self.class.post(uri, options)
+      parsed_response = raise_or_return(res)
+
+      get_identities(user)
+      Zendesk::Identity.new(parsed_response['identity'])
     end
 
     alias :get_user_identities :get_identities
