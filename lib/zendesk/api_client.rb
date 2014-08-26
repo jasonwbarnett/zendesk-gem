@@ -11,6 +11,7 @@ module Zendesk
 
     attr_reader :username
     attr_accessor :users, :next_page, :previous_page, :count
+    attr_accessor :last_result
 
     def initialize(options = {})
       @username   = options[:username] || Zendesk.config[:username] || fail("Missing required options: :username")
@@ -29,18 +30,48 @@ module Zendesk
       fail("Missing required options: :password or :token") unless password || @token
     end
 
+    def next_page
+      klass = @last_result.class
+      next_page_uri, options = next_page_parser(@last_result['next_page'])
+      p next_page_uri
+      p options
+
+      res = self.class.get(next_page_uri, options)
+      parsed_response = raise_or_return(res)
+
+      p parsed_response
+
+      @last_result = klass.new(parsed_response)
+    end
+
+    def next_page_parser(next_page)
+      return [nil, nil] if next_page.nil?
+      uri = URI(next_page)
+      params = URI.decode_www_form(uri.query).to_h
+      options = { query: params }
+
+
+      base_path = URI(self.class.base_uri).path
+      base_path_regexp = Regexp.escape(base_path)
+      request_path = uri.path.sub(base_path_regexp, '')
+
+      [request_path, options]
+    end
+
     def search(query)
-      @search ||= get_search(query)
+      @last_result = get_search(query)
     end
 
     def users
-      @users ||= get_users
+      @last_result = get_users
     end
 
     private
     def get_search(query)
       uri = '/search.json'
-      options = { query: {'query' => query}}
+      query = {'query' => query}
+      @last_request_query = query
+      options = {query: query}
 
       res = self.class.get(uri, options)
       parsed_response = raise_or_return(res)
@@ -50,6 +81,8 @@ module Zendesk
 
     def get_users
       uri = '/users.json'
+      query = nil
+      @last_request_query = query
 
       res = self.class.get(uri)
       parsed_response = raise_or_return(res)
