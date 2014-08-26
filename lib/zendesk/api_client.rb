@@ -40,10 +40,22 @@ module Zendesk
 
     def search(query)
       @last_result = get_search(query)
+      @last_result = convert_search_results_to_klass(@last_result)
     end
 
     def users
       @last_result = get_users
+    end
+
+    def get_user_identities(user)
+      user_id = user.id
+      uri = "/users/#{user_id}/identities.json"
+
+      res = self.class.get(uri)
+      parsed_response = raise_or_return(res)
+
+      user.identities = parsed_response['identities']
+      user
     end
 
     private
@@ -56,6 +68,25 @@ module Zendesk
       parsed_response = raise_or_return(res)
 
       @last_result = klass.new(parsed_response)
+      @last_result = convert_search_results_to_klass(@last_result)
+    end
+
+    def convert_search_results_to_klass(last_result)
+      return last_result unless Zendesk::Search === last_result
+
+      last_result_hash = last_result.to_h
+
+      last_result_hash[:results].map! do |x|
+        case x['result_type']
+          when 'user'
+            x = Zendesk::User.new(x)
+          else
+            x
+        end
+      end
+
+      last_result.results = last_result_hash[:results]
+      last_result
     end
 
     def zendesk_page_parser(next_page)

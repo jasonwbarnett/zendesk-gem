@@ -6,7 +6,7 @@ module Zendesk
   class User
     include Virtus.model
 
-    attribute :id, Integer, :writer => :private
+    attribute :id, Integer
     attribute :url, String
     attribute :name, String
     attribute :email, String
@@ -40,8 +40,5 @@ module Zendesk
 
     attribute :identities, Array[Zendesk::Identity]
 
-    def set_id(id)
-      self.id = id
-    end
   end
 end
