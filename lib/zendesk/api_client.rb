@@ -31,20 +31,34 @@ module Zendesk
     end
 
     def next_page
+      get_page('next_page')
+    end
+
+    def previous_page
+      get_page('previous_page')
+    end
+
+    def search(query)
+      @last_result = get_search(query)
+    end
+
+    def users
+      @last_result = get_users
+    end
+
+    private
+    def get_page(x)
       klass = @last_result.class
-      next_page_uri, options = next_page_parser(@last_result['next_page'])
-      p next_page_uri
-      p options
+      next_page_uri, options = zendesk_page_parser(@last_result[x])
+      return nil if next_page_uri.nil?
 
       res = self.class.get(next_page_uri, options)
       parsed_response = raise_or_return(res)
 
-      p parsed_response
-
       @last_result = klass.new(parsed_response)
     end
 
-    def next_page_parser(next_page)
+    def zendesk_page_parser(next_page)
       return [nil, nil] if next_page.nil?
       uri = URI(next_page)
       params = URI.decode_www_form(uri.query).to_h
@@ -58,15 +72,6 @@ module Zendesk
       [request_path, options]
     end
 
-    def search(query)
-      @last_result = get_search(query)
-    end
-
-    def users
-      @last_result = get_users
-    end
-
-    private
     def get_search(query)
       uri = '/search.json'
       query = {'query' => query}
