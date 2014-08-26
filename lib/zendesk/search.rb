@@ -2,7 +2,7 @@ require 'virtus'
 require 'zendesk/user'
 
 module Zendesk
-  class Users
+  class Search
     include Virtus.model
 
     attribute :results, Array

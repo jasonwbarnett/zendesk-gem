@@ -2,6 +2,7 @@ require "httparty"
 require "zendesk"
 require "zendesk/api_error"
 require "zendesk/users"
+require "zendesk/search"
 
 module Zendesk
   class ApiClient
@@ -28,24 +29,32 @@ module Zendesk
       fail("Missing required options: :password or :token") unless password || @token
     end
 
+    def search(query)
+      @search ||= get_search(query)
+    end
+
     def users
       @users ||= get_users
     end
 
     private
+    def get_search(query)
+      uri = '/search.json'
+      options = { query: {'query' => query}}
+
+      res = self.class.get(uri, options)
+      parsed_response = raise_or_return(res)
+
+      Zendesk::Search.new(parsed_response)
+    end
+
     def get_users
       uri = '/users.json'
+
       res = self.class.get(uri)
       parsed_response = raise_or_return(res)
-      users = parsed_response['users']
-      #set_common_params(parsed_response)
-      users = Zendesk::Users.new(parsed_response)
-      #all = users.inject([]) do |memo, x|
-      #  user =  Zendesk::User.new(x)
-      #  user.set_id(x['id'])
-      #  memo << user
-      #  memo
-      #end
+
+      Zendesk::Users.new(parsed_response)
     end
 
     def raise_or_return(result)
