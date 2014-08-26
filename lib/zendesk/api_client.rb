@@ -47,7 +47,8 @@ module Zendesk
       @last_result = get_users
     end
 
-    def get_user_identities(user)
+    def get_identities(user)
+      fail("Expected a Zendesk::User, but received a #{user.class}.") unless Zendesk::User === user
       user_id = user.id
       uri = "/users/#{user_id}/identities.json"
 
@@ -57,6 +58,8 @@ module Zendesk
       user.identities = parsed_response['identities']
       user
     end
+
+    alias :get_user_identities :get_identities
 
     private
     def get_page(x)
