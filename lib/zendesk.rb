@@ -1,4 +1,5 @@
 require "zendesk/version"
+require "zendesk/api_client"
 require "yaml"
 
 module Zendesk

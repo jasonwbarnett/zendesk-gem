@@ -78,6 +78,8 @@ module Zendesk
 
     def delete_identity(identity)
       fail("Expected a Zendesk::Identity, but received a #{identity.class}.") unless Zendesk::Identity === identity
+      fail("The Zendesk::Identity did not have an id")      unless identity.id
+      fail("The Zendesk::Identity did not have an user_id") unless identity.user_id
 
       uri = "/users/#{identity.user_id}/identities/#{identity.id}.json"
 
