@@ -12,7 +12,7 @@ module Zendesk
     attr_accessor :users, :next_page, :previous_page, :count
 
     def initialize(options = {})
-      @username   = options[:username] || Zendesk.config[:username]
+      @username   = options[:username] || Zendesk.config[:username] || fail("Missing required options: :username")
       @token      = options[:token]    || Zendesk.config[:token]
       password    = options[:password] || Zendesk.config[:password]
       auth_token  = password || @token
@@ -24,8 +24,8 @@ module Zendesk
       # Sets the headers for every response
       self.class.headers({'Content-Type' => 'application/json', 'Accept' => 'application/json'})
 
-      fail "Missing required options: :username"           unless @username
-      fail "Missing required options: :password or :token" unless password || @token
+      fail("Missing required options: :username")           unless @username
+      fail("Missing required options: :password or :token") unless password || @token
     end
 
     def users
