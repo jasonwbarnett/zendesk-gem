@@ -10,6 +10,6 @@ module Zendesk
     attribute :content_url, String
     attribute :content_type, String
     attribute :size, Integer
-    attribute :thumbnails, Zendesk::Thumbnail
+    attribute :thumbnails, Array[Zendesk::Thumbnail]
   end
 end
