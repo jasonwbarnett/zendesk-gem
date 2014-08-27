@@ -61,7 +61,7 @@ module Zendesk
 
     alias :get_user_identities :get_identities
 
-    def add_identity(user, identity)
+    def create_identity(user, identity)
       uri = "/users/#{user.id}/identities.json"
 
       identity_hash = identity.to_h
@@ -73,8 +73,11 @@ module Zendesk
       parsed_response = raise_or_return(res)
 
       get_identities(user)
-      Zendesk::Identity.new(parsed_response['identity'])
+      new_identity = Zendesk::Identity.new(parsed_response['identity'])
+      new_identity
     end
+
+    alias :add_identity :create_identity
 
     def delete_identity(identity)
       fail("Expected a Zendesk::Identity, but received a #{identity.class}.") unless Zendesk::Identity === identity
@@ -84,6 +87,17 @@ module Zendesk
       uri = "/users/#{identity.user_id}/identities/#{identity.id}.json"
 
       res = self.class.delete(uri)
+      parsed_response = raise_or_return(res)
+    end
+
+    def set_primary_identity(identity)
+      fail("Expected a Zendesk::Identity, but received a #{identity.class}.") unless Zendesk::Identity === identity
+      fail("The Zendesk::Identity did not have an id")      unless identity.id
+      fail("The Zendesk::Identity did not have an user_id") unless identity.user_id
+
+      uri = "/users/#{identity.user_id}/identities/#{identity.id}/make_primary"
+
+      res = self.class.put(uri)
       parsed_response = raise_or_return(res)
     end
 
