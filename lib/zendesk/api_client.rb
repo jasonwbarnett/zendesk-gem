@@ -11,7 +11,6 @@ module Zendesk
     format :json
 
     attr_reader :username
-    attr_accessor :users, :next_page, :previous_page, :count
     attr_accessor :last_result
 
     def initialize(options = {})
